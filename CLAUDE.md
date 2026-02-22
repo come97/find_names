@@ -6,9 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **find_names** is a public French baby name discovery app. Users search, compare and share name trends (INSEE data 1900-2022) via shareable URLs. No authentication — fully public.
 
-The project contains two versions:
-- **Legacy prototype** (root): Python/Streamlit app
-- **Production app** (`web/`): Next.js on Vercel with Turso database
+The app lives in the `web/` subfolder (Next.js on Vercel with Turso database).
 
 ## Technology Stack (`web/`)
 
@@ -48,7 +46,6 @@ find_names/
     drizzle.config.ts               # Drizzle Kit config for migrations
     .env.example
     package.json
-  streamlit.py                      # Legacy Streamlit prototype
   nat2022.csv                       # Source data (git-ignored, ~703k rows)
 ```
 
@@ -78,12 +75,6 @@ npx drizzle-kit generate  # Generate migration files
 3. Copy `web/.env.example` to `web/.env.local` and fill in `TURSO_DATABASE_URL` + `TURSO_AUTH_TOKEN`
 4. Push schema: `npx drizzle-kit push`
 5. Seed data: `npm run seed`
-
-### Legacy Streamlit (from root)
-```bash
-streamlit run streamlit.py       # → http://localhost:8501
-python df_name.py nat2022.dbf nat2022.csv  # Convert DBF → CSV
-```
 
 ## Environment Variables
 
