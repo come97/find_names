@@ -30,7 +30,7 @@ def load_data(csv_path):
     return df
 
 # Chargement du fichier CSV nettoyé
-csv_file = "nat2022_clean.csv"  # Assurez-vous que ce fichier existe
+csv_file = "nat2022.csv"  # Assurez-vous que ce fichier existe
 df = load_data(csv_file)
 if df is None:
     st.stop()
