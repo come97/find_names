@@ -1,5 +1,6 @@
 /**
- * Génère les données statiques à partir de nat2022.csv (INSEE).
+ * Génère les données statiques à partir du fichier des prénoms INSEE
+ * (nat2024.csv, format « sexe;prenom;periode;valeur »).
  *
  * Sorties dans public/data/ :
  *  - index.json : [name, total, genderFlag][] pour l'autocomplete client
@@ -7,6 +8,7 @@
  *  - top.json   : suggestions pour l'état vide (top récents + classiques)
  *  - s/{XX}.json: séries par bigramme normalisé du prénom
  *    { NAME: [[year, boys, girls], ...] }
+ * Et src/lib/dataset-meta.ts (année la plus récente du jeu de données).
  *
  * Usage : npm run build:data
  */
@@ -16,8 +18,9 @@ import { join } from "node:path";
 import { parse } from "csv-parse";
 import { shardKey } from "../src/lib/shard";
 
-const CSV_PATH = join(__dirname, "../../nat2022.csv");
+const CSV_PATH = join(__dirname, "../../nat2024.csv");
 const OUT_DIR = join(__dirname, "../public/data");
+const META_PATH = join(__dirname, "../src/lib/dataset-meta.ts");
 
 type Series = Map<number, [number, number]>; // year -> [boys, girls]
 
@@ -25,15 +28,17 @@ async function main() {
   const byName = new Map<string, Series>();
 
   const parser = createReadStream(CSV_PATH).pipe(
-    parse({ columns: true, trim: true })
+    parse({ columns: true, trim: true, delimiter: ";" })
   );
 
+  let latestYear = 0;
   for await (const row of parser) {
-    const name = row.preusuel as string;
-    if (name === "_PRENOMS_RARES" || row.annais === "XXXX") continue;
-    const year = Number(row.annais);
-    const count = Number(row.nombre);
+    const name = row.prenom as string;
+    if (name === "_PRENOMS_RARES" || !/^\d{4}$/.test(row.periode)) continue;
+    const year = Number(row.periode);
+    const count = Number(row.valeur);
     const isBoy = row.sexe === "1";
+    if (year > latestYear) latestYear = year;
 
     let series = byName.get(name);
     if (!series) {
@@ -82,8 +87,7 @@ async function main() {
     await writeFile(join(OUT_DIR, "s", `${key}.json`), JSON.stringify(shard));
   }
 
-  // Suggestions : top 12 de 2022 + classiques du siècle
-  const latestYear = 2022;
+  // Suggestions : top 12 de l'année la plus récente + classiques du siècle
   const recent = [...byName.entries()]
     .map(([name, s]) => {
       const e = s.get(latestYear);
@@ -98,8 +102,13 @@ async function main() {
     JSON.stringify({ recent, classics })
   );
 
+  await writeFile(
+    META_PATH,
+    `// Généré par scripts/build-data.ts — ne pas modifier à la main\nexport const LATEST_YEAR = ${latestYear};\n`
+  );
+
   console.log(
-    `OK — ${index.length} prénoms, ${shards.size} shards écrits dans public/data/`
+    `OK — ${index.length} prénoms, ${shards.size} shards, données jusqu'en ${latestYear}`
   );
 }
 

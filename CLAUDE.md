@@ -4,28 +4,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**find_names** is a public French baby name discovery app ("Prénoms"). Users search, compare and share name trends (INSEE data 1900–2022) via shareable URLs. No authentication — fully public. All UI text is in French.
+**find_names** is a public French baby name discovery app ("Prénoms"). Users search, compare and share name trends (INSEE data 1900–2024) via shareable URLs. No authentication — fully public. All UI text is in French.
 
 The app lives in the `web/` subfolder (Next.js on Vercel). **There is no database** — all data is pre-computed static JSON served from the CDN.
 
 ## Technology Stack (`web/`)
 
 - **Framework**: Next.js 16 (App Router), React 19, TypeScript
-- **Styling**: Tailwind CSS v4 (custom "Almanach" theme, no shadcn)
+- **Styling**: Tailwind CSS v4 (custom "Minuit graphite" dark theme, no shadcn)
 - **Fonts**: Fraunces (display) + Figtree (body) via next/font
 - **Charts**: Recharts
 - **URL State**: nuqs (`?names=CAMILLE,CÔME` — names stored uppercase as in INSEE data)
-- **Data**: static JSON generated from `nat2022.csv` into `web/public/data/` (committed to git; the CSV itself is git-ignored)
+- **Data**: static JSON generated from `nat2024.csv` into `web/public/data/` (committed to git; the CSV itself is git-ignored)
 
 ## Data Architecture
 
-`npm run build:data` (scripts/build-data.ts) reads `../nat2022.csv` and writes to `public/data/`:
+`npm run build:data` (scripts/build-data.ts) reads `../nat2024.csv` and writes to `public/data/`:
 
 - `index.json` — `[name, totalBirths, genderFlag][]` sorted by popularity (flag: 1 boy, 2 girl, 3 mixed). Loaded once client-side for instant, accent-insensitive autocomplete (no network per keystroke).
-- `s/{XX}.json` — 337 shards keyed by normalized first bigram of the name (`src/lib/shard.ts`). Each maps `NAME → [[year, boys, girls], ...]`.
-- `top.json` — empty-state suggestions (top 2022 + century classics).
+- `s/{XX}.json` — 354 shards keyed by normalized first bigram of the name (`src/lib/shard.ts`). Each maps `NAME → [[year, boys, girls], ...]`.
+- `top.json` — empty-state suggestions (top 2024 + century classics).
 
-Rows with `_PRENOMS_RARES` or year `XXXX` are filtered out.
+Rows with non-numeric years or `_PRENOMS_RARES` are filtered out. The script also writes `src/lib/dataset-meta.ts` (`LATEST_YEAR`), imported wherever the latest year is displayed.
 
 ## Request Flow
 
@@ -55,7 +55,7 @@ find_names/
         search-params.ts        # nuqs parser (import from "nuqs/server")
     scripts/build-data.ts       # CSV → public/data/ generator
     public/data/                # Generated static data (committed)
-  nat2022.csv                   # Source data (git-ignored, ~703k rows)
+  nat2024.csv                   # Source data (git-ignored, ~711k rows)
 ```
 
 ## Commands (from `web/`)
@@ -64,7 +64,7 @@ find_names/
 npm run dev          # Dev server → http://localhost:3000
 npm run build        # Production build
 npm run lint         # ESLint
-npm run build:data   # Regenerate public/data/ from ../nat2022.csv
+npm run build:data   # Regenerate public/data/ from ../nat2024.csv
 ```
 
 No environment variables are required.

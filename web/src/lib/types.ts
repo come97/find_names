@@ -1,3 +1,5 @@
+import { LATEST_YEAR } from "./dataset-meta";
+
 /** [année, garçons, filles] */
 export type SeriesRow = [number, number, number];
 export type NameSeries = Record<string, SeriesRow[]>;
@@ -32,7 +34,7 @@ export function summarize(rows: SeriesRow[]): NameStatsSummary {
       peakCount = n;
       peakYear = year;
     }
-    if (year === 2022) latestCount = n;
+    if (year === LATEST_YEAR) latestCount = n;
   }
   return {
     total,

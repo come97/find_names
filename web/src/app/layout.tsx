@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Fraunces, Figtree } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { LATEST_YEAR } from "@/lib/dataset-meta";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -17,8 +18,7 @@ const figtree = Figtree({
 
 export const metadata: Metadata = {
   title: "Prénoms — l'almanach des prénoms français",
-  description:
-    "Un siècle de prénoms français (INSEE, 1900–2022). Cherchez, comparez, partagez d'un simple lien.",
+  description: `Un siècle de prénoms français (INSEE, 1900–${LATEST_YEAR}). Cherchez, comparez, partagez d'un simple lien.`,
 };
 
 export default function RootLayout({

@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { displayName, type NameSeries } from "@/lib/types";
+import { LATEST_YEAR } from "@/lib/dataset-meta";
 
 export const PALETTE = [
   "#6c95ff", // cobalt
@@ -57,7 +58,7 @@ export function NameChart({
           Naissances par année
         </span>
         <span className="text-xs uppercase tracking-widest text-ink-faint">
-          1900 → 2022
+          1900 → {LATEST_YEAR}
         </span>
       </figcaption>
       <ResponsiveContainer width="100%" height={380}>
@@ -68,7 +69,7 @@ export function NameChart({
             stroke="var(--color-ink-faint)"
             tick={{ fill: "var(--color-ink-soft)", fontSize: 12 }}
             tickLine={false}
-            ticks={[1900, 1920, 1940, 1960, 1980, 2000, 2022]}
+            ticks={[1900, 1920, 1940, 1960, 1980, 2000, LATEST_YEAR]}
           />
           <YAxis
             stroke="transparent"

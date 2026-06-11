@@ -10,6 +10,7 @@ import {
 } from "@/lib/types";
 import { fetchSeries, primeSeriesCache } from "@/lib/series-client";
 import { loadNamesIndex, randomName } from "@/lib/names-index";
+import { LATEST_YEAR } from "@/lib/dataset-meta";
 import { SearchBar } from "./search-bar";
 import { NameChart, PALETTE } from "./name-chart";
 
@@ -65,7 +66,7 @@ export function Explorer({
           Prénoms<span className="text-accent">.</span>
         </span>
         <span className="text-xs uppercase tracking-[0.2em] text-ink-soft">
-          INSEE · 1900–2022
+          INSEE · 1900–{LATEST_YEAR}
         </span>
       </header>
 
@@ -77,8 +78,8 @@ export function Explorer({
           <em className="text-accent">français</em>
         </h1>
         <p className="mx-auto mt-4 max-w-md text-sm text-ink-soft sm:text-base">
-          Cherchez un prénom, comparez son destin à d&apos;autres, partagez la
-          courbe d&apos;un simple lien.
+          Cherchez un prénom, comparez les courbes à travers les années,
+          partagez-les d&apos;un simple lien.
         </p>
         <div className="mx-auto mt-8 max-w-lg">
           <SearchBar
@@ -135,7 +136,7 @@ export function Explorer({
       {names.length === 0 && (
         <section className="rise rise-3 mx-auto max-w-2xl space-y-8 pt-6">
           <SuggestionRow
-            label="Tendances 2022"
+            label={`Tendances ${LATEST_YEAR}`}
             names={suggestions.recent}
             onPick={addName}
           />
@@ -148,8 +149,8 @@ export function Explorer({
       )}
 
       <footer className="mt-20 border-t border-line pt-4 text-center text-xs text-ink-faint">
-        Données : fichier des prénoms INSEE (nat2022) · Les prénoms donnés
-        moins de 3 fois par an ne sont pas comptés
+        Données : fichier des prénoms INSEE (nat2024) · Effectifs arrondis,
+        prénoms rares non comptés
       </footer>
     </div>
   );
@@ -215,7 +216,10 @@ function StatCards({
                 label="Année record"
                 value={`${s.peakYear} (${fmt(s.peakCount)})`}
               />
-              <Stat label="En 2022" value={s.latestCount ? fmt(s.latestCount) : "—"} />
+              <Stat
+                label={`En ${LATEST_YEAR}`}
+                value={s.latestCount ? fmt(s.latestCount) : "—"}
+              />
             </dl>
             {/* répartition filles / garçons */}
             <div className="mt-4">
