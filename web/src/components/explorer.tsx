@@ -60,9 +60,9 @@ export function Explorer({
   return (
     <div className="mx-auto max-w-5xl px-4 pb-20">
       {/* En-tête éditorial */}
-      <header className="rise flex items-baseline justify-between border-b-2 border-ink pb-3 pt-6">
+      <header className="rise flex items-baseline justify-between border-b border-line pb-3 pt-6">
         <span className="font-display text-xl font-semibold tracking-tight">
-          Prénoms<span className="text-vermillon">.</span>
+          Prénoms<span className="text-accent">.</span>
         </span>
         <span className="text-xs uppercase tracking-[0.2em] text-ink-soft">
           INSEE · 1900–2022
@@ -74,7 +74,7 @@ export function Explorer({
         <h1 className="font-display text-4xl font-medium leading-tight tracking-tight sm:text-6xl">
           Un siècle de prénoms
           <br />
-          <em className="text-vermillon">français</em>
+          <em className="text-accent">français</em>
         </h1>
         <p className="mx-auto mt-4 max-w-md text-sm text-ink-soft sm:text-base">
           Cherchez un prénom, comparez son destin à d&apos;autres, partagez la
@@ -115,7 +115,7 @@ export function Explorer({
               <button
                 type="button"
                 onClick={() => setNames([])}
-                className="px-2 text-xs uppercase tracking-wider text-ink-faint hover:text-vermillon"
+                className="px-2 text-xs uppercase tracking-wider text-ink-faint hover:text-accent"
               >
                 Tout effacer
               </button>
@@ -175,7 +175,7 @@ function SuggestionRow({
             key={name}
             type="button"
             onClick={() => onPick(name)}
-            className="rounded-full border border-line bg-paper-deep px-4 py-1.5 text-sm font-medium text-ink transition-all hover:-translate-y-0.5 hover:border-vermillon hover:text-vermillon"
+            className="rounded-full border border-line bg-paper-deep px-4 py-1.5 text-sm font-medium text-ink transition-all hover:-translate-y-0.5 hover:border-accent hover:text-accent"
           >
             {displayName(name)}
           </button>
@@ -224,7 +224,7 @@ function StatCards({
                   className="bg-azur"
                   style={{ width: `${100 - girlsPct}%` }}
                 />
-                <div className="bg-vermillon" style={{ width: `${girlsPct}%` }} />
+                <div className="bg-blush" style={{ width: `${girlsPct}%` }} />
               </div>
               <div className="mt-1 flex justify-between text-[11px] text-ink-faint">
                 <span>{100 - girlsPct}% garçons</span>

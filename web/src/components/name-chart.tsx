@@ -13,12 +13,12 @@ import {
 import { displayName, type NameSeries } from "@/lib/types";
 
 export const PALETTE = [
-  "#e2553d", // vermillon
-  "#3d6fb4", // azur
-  "#d9a441", // or
-  "#6f9d87", // sauge
-  "#8a5a83", // prune
-  "#1e2a45", // encre
+  "#6c95ff", // cobalt
+  "#e2789b", // rose
+  "#e3b65e", // ambre
+  "#5fc49a", // menthe
+  "#a78ef5", // lavande
+  "#7ecbe0", // glacier
 ];
 
 interface ChartRow {
@@ -80,11 +80,11 @@ export function NameChart({
           />
           <Tooltip
             contentStyle={{
-              background: "var(--color-paper)",
-              border: "2px solid var(--color-ink)",
+              background: "var(--color-paper-deep)",
+              border: "1px solid var(--color-line)",
               borderRadius: 12,
               fontSize: 13,
-              boxShadow: "3px 3px 0 0 var(--color-ink)",
+              boxShadow: "0 12px 32px rgba(0,0,0,0.5)",
             }}
             labelStyle={{ fontWeight: 700, color: "var(--color-ink)" }}
             formatter={(value, key) => [

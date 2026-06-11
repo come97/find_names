@@ -71,7 +71,7 @@ export function SearchBar({
 
   return (
     <div ref={wrapperRef} className="relative">
-      <div className="flex items-center gap-2 rounded-full border-2 border-ink bg-paper px-5 py-3 shadow-[4px_4px_0_0_var(--color-ink)] transition-shadow focus-within:shadow-[2px_2px_0_0_var(--color-vermillon)]">
+      <div className="flex items-center gap-2 rounded-full border border-line bg-paper-deep px-5 py-3 shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-colors focus-within:border-accent">
         <svg
           className="h-5 w-5 shrink-0 text-ink-soft"
           viewBox="0 0 24 24"
@@ -99,14 +99,14 @@ export function SearchBar({
           type="button"
           onClick={onSurprise}
           title="Un prénom au hasard"
-          className="shrink-0 rounded-full bg-vermillon px-3 py-1 text-xs font-semibold uppercase tracking-wider text-paper transition-colors hover:bg-vermillon-deep"
+          className="shrink-0 rounded-full bg-accent px-3 py-1 text-xs font-semibold uppercase tracking-wider text-paper transition-colors hover:bg-accent-deep"
         >
           Hasard
         </button>
       </div>
 
       {results.length > 0 && (
-        <ul className="absolute top-full left-0 right-0 z-50 mt-2 max-h-72 overflow-auto rounded-2xl border-2 border-ink bg-paper py-1 text-left shadow-[4px_4px_0_0_var(--color-ink)]">
+        <ul className="absolute top-full left-0 right-0 z-50 mt-2 max-h-72 overflow-auto rounded-2xl border border-line bg-paper-deep py-1 text-left shadow-[0_16px_40px_rgba(0,0,0,0.5)]">
           {results.map(([name, total, gender], i) => (
             <li key={name}>
               <button
@@ -114,7 +114,7 @@ export function SearchBar({
                 onMouseEnter={() => setHighlighted(i)}
                 onClick={() => pick(name)}
                 className={`flex w-full items-baseline gap-2 px-5 py-2 text-sm ${
-                  i === highlighted ? "bg-paper-deep" : ""
+                  i === highlighted ? "bg-line/50" : ""
                 }`}
               >
                 <span className="font-semibold">{displayName(name)}</span>

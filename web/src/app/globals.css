@@ -1,20 +1,18 @@
 @import "tailwindcss";
 
-/* ——— Almanach : papier crème, encre bleu nuit, vermillon ——— */
+/* ——— Minuit graphite : anthracite profond, porcelaine, accent cobalt ——— */
 
 @theme {
-  --color-paper: #faf5ec;
-  --color-paper-deep: #f3ecdd;
-  --color-ink: #1e2a45;
-  --color-ink-soft: #5b6478;
-  --color-ink-faint: #9aa0ae;
-  --color-vermillon: #e2553d;
-  --color-vermillon-deep: #c43e28;
-  --color-gold: #d9a441;
-  --color-sage: #6f9d87;
-  --color-plum: #8a5a83;
-  --color-azur: #3d6fb4;
-  --color-line: #e3dac7;
+  --color-paper: #0f1216;
+  --color-paper-deep: #161b21;
+  --color-ink: #e9ecf1;
+  --color-ink-soft: #98a1ad;
+  --color-ink-faint: #5d6672;
+  --color-accent: #6c95ff;
+  --color-accent-deep: #4f7cf2;
+  --color-azur: #6c95ff;
+  --color-blush: #e2789b;
+  --color-line: #242b34;
 
   --font-display: var(--font-display), "Georgia", serif;
   --font-body: var(--font-body), system-ui, sans-serif;
@@ -23,17 +21,22 @@
 body {
   background-color: var(--color-paper);
   color: var(--color-ink);
-  /* grain de papier très léger */
+  /* trame de points à peine perceptible */
   background-image: radial-gradient(
       circle at 1px 1px,
-      rgba(30, 42, 69, 0.035) 1px,
+      rgba(233, 236, 241, 0.04) 1px,
       transparent 0
+    ),
+    radial-gradient(
+      ellipse 80% 50% at 50% -10%,
+      rgba(108, 149, 255, 0.07),
+      transparent
     );
-  background-size: 22px 22px;
+  background-size: 22px 22px, 100% 100%;
 }
 
 ::selection {
-  background: var(--color-vermillon);
+  background: var(--color-accent);
   color: var(--color-paper);
 }
 
