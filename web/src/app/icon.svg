@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#0f1216"/>
+  <rect x="1" y="1" width="62" height="62" rx="13" fill="none" stroke="#242b34" stroke-width="2"/>
+  <!-- courbe rose : pic ancien qui décline -->
+  <path d="M8 22 C16 14, 22 16, 30 30 S48 52, 56 50"
+        fill="none" stroke="#e2789b" stroke-width="5" stroke-linecap="round" opacity="0.9"/>
+  <!-- courbe cobalt : montée récente -->
+  <path d="M8 50 C18 50, 26 46, 34 36 S50 14, 56 14"
+        fill="none" stroke="#6c95ff" stroke-width="5" stroke-linecap="round"/>
+</svg>
