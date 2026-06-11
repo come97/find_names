@@ -4,91 +4,74 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**find_names** is a public French baby name discovery app. Users search, compare and share name trends (INSEE data 1900-2022) via shareable URLs. No authentication — fully public.
+**find_names** is a public French baby name discovery app ("Prénoms"). Users search, compare and share name trends (INSEE data 1900–2022) via shareable URLs. No authentication — fully public. All UI text is in French.
 
-The app lives in the `web/` subfolder (Next.js on Vercel with Turso database).
+The app lives in the `web/` subfolder (Next.js on Vercel). **There is no database** — all data is pre-computed static JSON served from the CDN.
 
 ## Technology Stack (`web/`)
 
 - **Framework**: Next.js 16 (App Router), React 19, TypeScript
-- **Styling**: Tailwind CSS v4, shadcn/ui, Lucide Icons
+- **Styling**: Tailwind CSS v4 (custom "Almanach" theme, no shadcn)
+- **Fonts**: Fraunces (display) + Figtree (body) via next/font
 - **Charts**: Recharts
-- **Database**: Turso (libSQL) + Drizzle ORM
-- **URL State**: nuqs (selected names synced to URL query params)
-- **Deployment**: Vercel (Root Directory = `web`)
+- **URL State**: nuqs (`?names=CAMILLE,CÔME` — names stored uppercase as in INSEE data)
+- **Data**: static JSON generated from `nat2022.csv` into `web/public/data/` (committed to git; the CSV itself is git-ignored)
+
+## Data Architecture
+
+`npm run build:data` (scripts/build-data.ts) reads `../nat2022.csv` and writes to `public/data/`:
+
+- `index.json` — `[name, totalBirths, genderFlag][]` sorted by popularity (flag: 1 boy, 2 girl, 3 mixed). Loaded once client-side for instant, accent-insensitive autocomplete (no network per keystroke).
+- `s/{XX}.json` — 337 shards keyed by normalized first bigram of the name (`src/lib/shard.ts`). Each maps `NAME → [[year, boys, girls], ...]`.
+- `top.json` — empty-state suggestions (top 2022 + century classics).
+
+Rows with `_PRENOMS_RARES` or year `XXXX` are filtered out.
+
+## Request Flow
+
+- Initial load / shared link: `page.tsx` (RSC) parses `?names=` via nuqs server loader, reads shards from the filesystem (`src/lib/data.ts`), renders chart + stats server-side.
+- Client interactions: `Explorer` updates the URL via nuqs and fetches missing shards from `/data/s/{XX}.json` with an in-memory cache (`src/lib/series-client.ts`).
 
 ## Project Structure
 
 ```
 find_names/
-  web/                              # Production Next.js app
+  web/
     src/
       app/
-        layout.tsx                  # Root layout with NuqsAdapter + Header
-        page.tsx                    # Home page with NameSelection
-        globals.css                 # Tailwind + shadcn CSS variables
-        actions/
-          search.ts                 # Server Actions: searchNames, getNameStats, getMultipleNameStats
+        layout.tsx              # Fonts + NuqsAdapter
+        page.tsx                # RSC: loads initial series from searchParams
+        globals.css             # Tailwind v4 @theme (Almanach palette)
       components/
-        header.tsx                  # App header with logo + SearchBar
-        search-bar.tsx              # Client component: autocomplete with nuqs URL sync
-        name-selection.tsx          # Client component: name chips + chart from URL state
-        name-chart.tsx              # Client component: Recharts line chart
-        ui/                         # shadcn/ui components (button, input, card, tabs)
-      db/
-        schema.ts                   # Drizzle schema: nameStats table
-        index.ts                    # Drizzle client instance (Turso)
+        explorer.tsx            # Main client component: hero, chips, stats, suggestions
+        search-bar.tsx          # Client-side instant autocomplete (keyboard nav)
+        name-chart.tsx          # Recharts line chart + PALETTE
       lib/
-        utils.ts                    # cn() utility from shadcn
-        search-params.ts            # nuqs parser: namesParser for ?names=X,Y,Z
-    scripts/
-      seed.ts                       # CSV → Turso batch import script
-    drizzle.config.ts               # Drizzle Kit config for migrations
-    .env.example
-    package.json
-  nat2022.csv                       # Source data (git-ignored, ~703k rows)
+        shard.ts                # shardKey() + normalizeForSearch() (shared build/runtime)
+        data.ts                 # Server-side shard loading (fs)
+        series-client.ts        # Client-side shard fetching + cache
+        names-index.ts          # Client index loading, search, random pick
+        types.ts                # SeriesRow/NameSeries, displayName(), summarize()
+        search-params.ts        # nuqs parser (import from "nuqs/server")
+    scripts/build-data.ts       # CSV → public/data/ generator
+    public/data/                # Generated static data (committed)
+  nat2022.csv                   # Source data (git-ignored, ~703k rows)
 ```
 
-## Database Schema (Turso/SQLite)
+## Commands (from `web/`)
 
-### `name_stats` — single table
-- Columns: `id` (autoincrement), `name` (TEXT), `gender` (INTEGER: 1=boy, 2=girl), `year` (INTEGER), `count` (INTEGER)
-- Indexes: `name` (prefix search), `(gender, name)`, `(name, year)`
-- Unique index: `(name, gender, year)` — prevents duplicate rows
-
-## Common Development Commands
-
-### Next.js App (from `web/`)
 ```bash
-cd web
 npm run dev          # Dev server → http://localhost:3000
 npm run build        # Production build
 npm run lint         # ESLint
-npm run seed         # Seed Turso from nat2022.csv (requires .env.local)
-npx drizzle-kit push # Push schema to Turso
-npx drizzle-kit generate  # Generate migration files
+npm run build:data   # Regenerate public/data/ from ../nat2022.csv
 ```
 
-### Database Setup
-1. Create a Turso database: `turso db create find-names`
-2. Get credentials: `turso db tokens create find-names`
-3. Copy `web/.env.example` to `web/.env.local` and fill in `TURSO_DATABASE_URL` + `TURSO_AUTH_TOKEN`
-4. Push schema: `npx drizzle-kit push`
-5. Seed data: `npm run seed`
+No environment variables are required.
 
-## Environment Variables
+## Key Notes
 
-| Variable | Purpose |
-|----------|---------|
-| `TURSO_DATABASE_URL` | Turso database URL (libsql://...) |
-| `TURSO_AUTH_TOKEN` | Turso auth token (optional for local dev with file: URL) |
-
-## Key Architecture Notes
-
-- **URL as state**: Selected names are stored in `?names=Côme,Hugo` via nuqs. This makes any view shareable via copy-paste of the URL.
-- **Server Actions** in `src/app/actions/search.ts`: `searchNames` (autocomplete, prefix LIKE), `getNameStats` (single name), `getMultipleNameStats` (chart data for multiple names)
-- **Search flow**: User types in SearchBar → debounced Server Action (200ms) → dropdown results → click adds name to URL → NameChart fetches data
-- **Data pivot in chart**: Raw DB rows `(name, year, count, gender)` are pivoted client-side into `{ year, NameA: count, NameB: count }` for Recharts. Counts are summed across genders.
-- **Seed script** filters out `_PRENOMS_RARES` (aggregate placeholder for rare names <3 births/year) and batch-inserts in chunks of 500
-- Gender encoding from INSEE: `1 = Garçon (boy)`, `2 = Fille (girl)`
-- All UI text is in French
+- Names in URLs and data keys are uppercase with accents (INSEE format, e.g. `CÔME`); `displayName()` title-cases for display.
+- Gender encoding from INSEE: `1 = garçon`, `2 = fille`.
+- Max 6 names compared at once (`MAX_NAMES` in explorer.tsx); chart colors come from `PALETTE` in name-chart.tsx.
+- `search-params.ts` must import from `nuqs/server` so the parser works in both RSC and client components.

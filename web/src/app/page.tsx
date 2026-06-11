@@ -1,18 +1,20 @@
-import { NameSelection } from "@/components/name-selection";
+import { createLoader } from "nuqs/server";
+import { namesParser } from "@/lib/search-params";
+import { loadSeries, loadSuggestions } from "@/lib/data";
+import { Explorer } from "@/components/explorer";
 
-export default function Home() {
-  return (
-    <div className="space-y-6">
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Trouvez le prénom parfait
-        </h1>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          Explorez les tendances des prénoms français de 1900 à 2022.
-          Recherchez, comparez et partagez vos favoris via un simple lien.
-        </p>
-      </div>
-      <NameSelection />
-    </div>
-  );
+const loadParams = createLoader({ names: namesParser });
+
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const { names } = await loadParams(await searchParams);
+  const [initialSeries, suggestions] = await Promise.all([
+    loadSeries(names),
+    loadSuggestions(),
+  ]);
+
+  return <Explorer initialSeries={initialSeries} suggestions={suggestions} />;
 }

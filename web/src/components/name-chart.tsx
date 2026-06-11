@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import {
   LineChart,
   Line,
@@ -8,106 +8,105 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts";
-import { getMultipleNameStats } from "@/app/actions/search";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { displayName, type NameSeries } from "@/lib/types";
 
-const COLORS = [
-  "hsl(221, 83%, 53%)",
-  "hsl(340, 75%, 55%)",
-  "hsl(142, 71%, 45%)",
-  "hsl(38, 92%, 50%)",
-  "hsl(262, 83%, 58%)",
-  "hsl(173, 80%, 40%)",
-  "hsl(0, 84%, 60%)",
-  "hsl(47, 96%, 53%)",
+export const PALETTE = [
+  "#e2553d", // vermillon
+  "#3d6fb4", // azur
+  "#d9a441", // or
+  "#6f9d87", // sauge
+  "#8a5a83", // prune
+  "#1e2a45", // encre
 ];
 
 interface ChartRow {
   year: number;
-  [key: string]: number;
+  [name: string]: number;
 }
 
-export function NameChart({ names }: { names: string[] }) {
-  const [data, setData] = useState<ChartRow[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (names.length === 0) {
-      setData([]);
-      return;
-    }
-
-    let cancelled = false;
-    setLoading(true);
-
-    getMultipleNameStats(names).then((rows) => {
-      if (cancelled) return;
-
-      // Pivot: group by year, sum counts per name (across genders)
-      const byYear = new Map<number, ChartRow>();
-      for (const row of rows) {
-        if (!byYear.has(row.year)) {
-          byYear.set(row.year, { year: row.year });
+export function NameChart({
+  names,
+  series,
+}: {
+  names: string[];
+  series: NameSeries;
+}) {
+  const data = useMemo(() => {
+    const byYear = new Map<number, ChartRow>();
+    for (const name of names) {
+      for (const [year, boys, girls] of series[name] ?? []) {
+        let row = byYear.get(year);
+        if (!row) {
+          row = { year };
+          byYear.set(year, row);
         }
-        const entry = byYear.get(row.year)!;
-        entry[row.name] = (entry[row.name] || 0) + row.count;
+        row[name] = (row[name] ?? 0) + boys + girls;
       }
-
-      const sorted = Array.from(byYear.values()).sort(
-        (a, b) => a.year - b.year
-      );
-      setData(sorted);
-      setLoading(false);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [names]);
-
-  if (loading) {
-    return (
-      <Card>
-        <CardContent className="flex items-center justify-center py-12">
-          <span className="text-muted-foreground">Chargement...</span>
-        </CardContent>
-      </Card>
-    );
-  }
+    }
+    return [...byYear.values()].sort((a, b) => a.year - b.year);
+  }, [names, series]);
 
   if (data.length === 0) return null;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">
-          Évolution des naissances
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={400}>
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="year" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            {names.map((name, i) => (
-              <Line
-                key={name}
-                type="monotone"
-                dataKey={name}
-                stroke={COLORS[i % COLORS.length]}
-                strokeWidth={2}
-                dot={false}
-              />
-            ))}
-          </LineChart>
-        </ResponsiveContainer>
-      </CardContent>
-    </Card>
+    <figure className="rounded-xl border border-line bg-paper-deep/40 p-4 sm:p-6">
+      <figcaption className="mb-4 flex items-baseline justify-between">
+        <span className="font-display text-lg font-semibold">
+          Naissances par année
+        </span>
+        <span className="text-xs uppercase tracking-widest text-ink-faint">
+          1900 → 2022
+        </span>
+      </figcaption>
+      <ResponsiveContainer width="100%" height={380}>
+        <LineChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+          <CartesianGrid stroke="var(--color-line)" vertical={false} />
+          <XAxis
+            dataKey="year"
+            stroke="var(--color-ink-faint)"
+            tick={{ fill: "var(--color-ink-soft)", fontSize: 12 }}
+            tickLine={false}
+            ticks={[1900, 1920, 1940, 1960, 1980, 2000, 2022]}
+          />
+          <YAxis
+            stroke="transparent"
+            tick={{ fill: "var(--color-ink-soft)", fontSize: 12 }}
+            tickFormatter={(v: number) =>
+              v >= 1000 ? `${(v / 1000).toLocaleString("fr-FR")} k` : `${v}`
+            }
+            width={48}
+          />
+          <Tooltip
+            contentStyle={{
+              background: "var(--color-paper)",
+              border: "2px solid var(--color-ink)",
+              borderRadius: 12,
+              fontSize: 13,
+              boxShadow: "3px 3px 0 0 var(--color-ink)",
+            }}
+            labelStyle={{ fontWeight: 700, color: "var(--color-ink)" }}
+            formatter={(value, key) => [
+              Number(value).toLocaleString("fr-FR"),
+              displayName(String(key)),
+            ]}
+            isAnimationActive={false}
+          />
+          {names.map((name, i) => (
+            <Line
+              key={name}
+              type="monotone"
+              dataKey={name}
+              stroke={PALETTE[i % PALETTE.length]}
+              strokeWidth={2.5}
+              dot={false}
+              activeDot={{ r: 4 }}
+              animationDuration={400}
+            />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+    </figure>
   );
 }

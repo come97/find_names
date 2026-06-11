@@ -1,24 +1,24 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fraunces, Figtree } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { Header } from "@/components/header";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const fraunces = Fraunces({
+  variable: "--font-display",
   subsets: ["latin"],
+  axes: ["opsz", "SOFT", "WONK"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const figtree = Figtree({
+  variable: "--font-body",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Prénoms de France — Explorez les tendances",
+  title: "Prénoms — l'almanach des prénoms français",
   description:
-    "Recherchez, comparez et partagez les tendances des prénoms français de 1900 à 2022 (données INSEE).",
+    "Un siècle de prénoms français (INSEE, 1900–2022). Cherchez, comparez, partagez d'un simple lien.",
 };
 
 export default function RootLayout({
@@ -29,13 +29,10 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${fraunces.variable} ${figtree.variable} font-body antialiased`}
       >
         <NuqsAdapter>
-          <Suspense>
-            <Header />
-            <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>
-          </Suspense>
+          <Suspense>{children}</Suspense>
         </NuqsAdapter>
       </body>
     </html>
