@@ -27,6 +27,17 @@ interface ChartRow {
   [name: string]: number;
 }
 
+/** Clés auxiliaires portant la répartition garçons / filles d'une année. */
+const boysKey = (name: string) => `${name}#b`;
+const girlsKey = (name: string) => `${name}#g`;
+
+interface TooltipEntry {
+  dataKey?: unknown;
+  color?: string;
+  value?: unknown;
+  payload?: ChartRow;
+}
+
 export function NameChart({
   names,
   series,
@@ -44,10 +55,24 @@ export function NameChart({
           byYear.set(year, row);
         }
         row[name] = (row[name] ?? 0) + boys + girls;
+        row[boysKey(name)] = (row[boysKey(name)] ?? 0) + boys;
+        row[girlsKey(name)] = (row[girlsKey(name)] ?? 0) + girls;
       }
     }
     return [...byYear.values()].sort((a, b) => a.year - b.year);
   }, [names, series]);
+
+  // Prénoms portés par les deux sexes sur la période : détail dans l'infobulle.
+  const mixed = useMemo(
+    () =>
+      new Set(
+        names.filter((name) => {
+          const rows = series[name] ?? [];
+          return rows.some((r) => r[1] > 0) && rows.some((r) => r[2] > 0);
+        })
+      ),
+    [names, series]
+  );
 
   if (data.length === 0) return null;
 
@@ -80,18 +105,14 @@ export function NameChart({
             width={48}
           />
           <Tooltip
-            contentStyle={{
-              background: "var(--color-paper-deep)",
-              border: "1px solid var(--color-line)",
-              borderRadius: 12,
-              fontSize: 13,
-              boxShadow: "0 12px 32px rgba(0,0,0,0.5)",
-            }}
-            labelStyle={{ fontWeight: 700, color: "var(--color-ink)" }}
-            formatter={(value, key) => [
-              Number(value).toLocaleString("fr-FR"),
-              displayName(String(key)),
-            ]}
+            content={({ active, payload, label }) => (
+              <ChartTooltip
+                active={active}
+                payload={payload as TooltipEntry[] | undefined}
+                label={label}
+                mixed={mixed}
+              />
+            )}
             isAnimationActive={false}
           />
           {names.map((name, i) => (
@@ -109,5 +130,50 @@ export function NameChart({
         </LineChart>
       </ResponsiveContainer>
     </figure>
+  );
+}
+
+function ChartTooltip({
+  active,
+  payload,
+  label,
+  mixed,
+}: {
+  active?: boolean;
+  payload?: TooltipEntry[];
+  label?: unknown;
+  mixed: Set<string>;
+}) {
+  if (!active || !payload?.length) return null;
+  const fmt = (n: number) => n.toLocaleString("fr-FR");
+  return (
+    <div
+      className="rounded-xl border border-line bg-paper-deep px-3 py-2 text-[13px]"
+      style={{ boxShadow: "0 12px 32px rgba(0,0,0,0.5)" }}
+    >
+      <p className="mb-1 font-bold text-ink">{String(label)}</p>
+      <ul className="space-y-1">
+        {payload.map((entry) => {
+          const name = String(entry.dataKey);
+          const row = entry.payload;
+          const boys = row?.[boysKey(name)] ?? 0;
+          const girls = row?.[girlsKey(name)] ?? 0;
+          return (
+            <li key={name}>
+              <span style={{ color: entry.color }}>
+                {displayName(name)} : {fmt(Number(entry.value))}
+              </span>
+              {mixed.has(name) && (
+                <span className="block text-xs tabular-nums text-ink-soft">
+                  <span className="text-azur">{fmt(boys)} garçons</span>
+                  {" · "}
+                  <span className="text-blush">{fmt(girls)} filles</span>
+                </span>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
