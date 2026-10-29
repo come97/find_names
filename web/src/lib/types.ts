@@ -16,6 +16,8 @@ export interface NameStatsSummary {
   peakYear: number;
   peakCount: number;
   latestCount: number;
+  boys: number;
+  girls: number;
   boysShare: number; // 0..1
   firstYear: number;
 }
@@ -41,6 +43,8 @@ export function summarize(rows: SeriesRow[]): NameStatsSummary {
     peakYear,
     peakCount,
     latestCount,
+    boys,
+    girls: total - boys,
     boysShare: total > 0 ? boys / total : 0,
     firstYear: rows[0]?.[0] ?? 0,
   };

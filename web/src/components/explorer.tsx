@@ -198,7 +198,6 @@ function StatCards({
       {names.map((name, i) => {
         const s = summarize(series[name]);
         const color = PALETTE[i % PALETTE.length];
-        const girlsPct = Math.round((1 - s.boysShare) * 100);
         return (
           <article
             key={name}
@@ -226,13 +225,30 @@ function StatCards({
               <div className="flex h-1.5 overflow-hidden rounded-full bg-line">
                 <div
                   className="bg-azur"
-                  style={{ width: `${100 - girlsPct}%` }}
+                  style={{ width: `${s.boysShare * 100}%` }}
                 />
-                <div className="bg-blush" style={{ width: `${girlsPct}%` }} />
+                <div
+                  className="bg-blush"
+                  style={{ width: `${(1 - s.boysShare) * 100}%` }}
+                />
               </div>
-              <div className="mt-1 flex justify-between text-[11px] text-ink-faint">
-                <span>{100 - girlsPct}% garçons</span>
-                <span>{girlsPct}% filles</span>
+              <div className="mt-1.5 flex justify-between gap-2 text-xs tabular-nums">
+                <span>
+                  <span className="font-semibold text-azur">
+                    {fmt(s.boys)}
+                  </span>{" "}
+                  <span className="text-ink-faint">
+                    garçons · {pct(s.boys, s.total)}
+                  </span>
+                </span>
+                <span className="text-right">
+                  <span className="font-semibold text-blush">
+                    {fmt(s.girls)}
+                  </span>{" "}
+                  <span className="text-ink-faint">
+                    filles · {pct(s.girls, s.total)}
+                  </span>
+                </span>
               </div>
             </div>
           </article>
@@ -253,4 +269,14 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 function fmt(n: number): string {
   return n.toLocaleString("fr-FR");
+}
+
+/** Pourcentage arrondi, sans masquer les petites parts (« <1 % »). */
+function pct(part: number, total: number): string {
+  if (total === 0 || part === 0) return "0 %";
+  if (part === total) return "100 %";
+  const p = (part / total) * 100;
+  if (p < 1) return "<1 %";
+  if (p > 99) return ">99 %";
+  return `${Math.round(p)} %`;
 }
